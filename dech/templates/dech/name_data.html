@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>诗歌词云</title>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3-cloud/build/d3.layout.cloud.js"></script>
+
+    <!-- 引入 Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&family=Raleway:wght@300;400;600&display=swap"
+          rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Raleway', sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            text-align: center;
+            font-family: 'Noto Serif SC', serif;
+            color: #333;
+            margin-top: 40px;
+            font-size: 36px;
+        }
+
+        .wordcloud-container {
+            display: flex;
+            justify-content: center;
+            margin: 40px auto;
+            max-width: 80%;
+            position: relative;
+        }
+
+        .wordcloud {
+            width: 600px;
+            height: 600px;
+            position: relative;
+            border-radius: 10px;
+            background-color: #ffffff;
+            padding: 10px;
+            margin: 10px;
+        }
+
+        .dynasty-title {
+            text-align: center;
+            font-size: 26px;
+            margin-bottom: 20px;
+            font-family: 'Noto Serif SC', serif;
+            color: #333;
+            font-weight: bold;
+        }
+
+        svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .wordcloud text {
+            font-family: 'Raleway', sans-serif;
+            font-weight: 700;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .wordcloud text:hover {
+            color: #ff7f50;
+        }
+
+        /* 箭头样式 */
+        .arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 36px;
+            color: #333;
+            cursor: pointer;
+        }
+
+        .left-arrow {
+            left: 10px;
+        }
+
+        .right-arrow {
+            right: 10px;
+        }
+    </style>
+</head>
+<body>
+<h1 class="dynasty-title">六朝</h1>
+<div class="wordcloud-container" id="wordcloud-container">
+    <!-- 左右切换箭头 -->
+    <span class="arrow left-arrow" onclick="changeWordCloud(-1)">&#8592;</span>
+    <div id="wordcloud" class="wordcloud"></div>
+    <span class="arrow right-arrow" onclick="changeWordCloud(1)">&#8594;</span>
+</div>
+
+<script>
+    const wordFreq = JSON.parse('{{ word_freq|safe }}');
+    let currentDynastyIndex = 0;
+    const dynasties = Object.keys(wordFreq);
+
+    // 标准化词频数据，使得每个朝代的词频相对平衡
+    function normalizeWordFreq(data) {
+        const values = Object.values(data);
+        const minFreq = Math.min(...values);
+        const maxFreq = Math.max(...values);
+        const range = maxFreq - minFreq;
+        // 如果最大频率和最小频率相同，返回原数据
+        if (range === 0) return data;
+        // 标准化，使得词频在 [0, 1] 范围内
+        const normalized = {};
+        for (const [word, freq] of Object.entries(data)) {
+            normalized[word] = (freq - minFreq) / range;
+        }
+        return normalized;
+    }
+
+    function getFontSize(freq, maxFreq, minFreq) {
+        const minSize = 10;
+        const maxSize = 100;
+        const size = minSize + (maxSize - minSize) * ((freq - minFreq) / (maxFreq - minFreq));
+        return Math.round(size);
+    }
+
+    function drawWordCloud(dynasty, data) {
+        const svgContainer = d3.select("#wordcloud")
+            .append("svg")
+            .attr("width", 600)
+            .attr("height", 600);
+        const normalizedData = normalizeWordFreq(data);
+        const freqs = Object.values(normalizedData);
+        const minFreq = Math.min(...freqs);
+        const maxFreq = Math.max(...freqs);
+        const layout = d3.layout.cloud()
+            .size([600, 600])
+            .words(Object.entries(normalizedData).map(([text, normalizedFreq]) => ({
+                text,
+                size: getFontSize(normalizedFreq, maxFreq, minFreq)
+            })))
+            .padding(5)
+            .rotate(() => Math.random() * 75 - 45)  // 随机旋转角度
+            .fontSize(d => d.size)
+            .on("end", words => {
+                svgContainer
+                    .append("g")
+                    .attr("transform", "translate(300,300)")
+                    .selectAll("text")
+                    .data(words)
+                    .enter()
+                    .append("text")
+                    .style("font-size", d => `${d.size}px`)
+                    .style("fill", () => d3.scaleOrdinal(d3.schemeCategory10)(Math.floor(Math.random() * 10)))
+                    .attr("text-anchor", "middle")
+                    .attr("transform", d => `translate(${d.x},${d.y}) rotate(${d.rotate})`)
+                    .text(d => d.text);
+            });
+
+        layout.start();
+    }
+
+    function changeWordCloud(direction) {
+        d3.select("#wordcloud").select("svg").remove();
+        currentDynastyIndex = (currentDynastyIndex + direction + dynasties.length) % dynasties.length;
+        const currentDynasty = dynasties[currentDynastyIndex];
+        const currentData = wordFreq[currentDynasty];
+        drawWordCloud(currentDynasty, currentData);
+        document.querySelector(".dynasty-title").textContent = currentDynasty;
+    }
+
+    window.onload = () => {
+        const firstDynasty = dynasties[currentDynastyIndex];
+        const firstData = wordFreq[firstDynasty];
+        drawWordCloud(firstDynasty, firstData);
+    }
+</script>
+
+</body>
+</html>
