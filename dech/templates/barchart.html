@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>金陵文脉</title>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f7f7f7;
+            margin: 0;
+            padding: 0;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: #333;
+        }
+
+        #app {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 3rem;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            opacity: 0;
+            animation: fadeIn 1s forwards 0.5s;
+        }
+
+        .el-button {
+            margin: 10px;
+            font-size: 1.2rem;
+            padding: 15px 30px;
+            border-radius: 8px;
+            opacity: 0;
+            animation: fadeIn 1s forwards 1s;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+
+        .el-button--primary {
+            background-color: #409EFF;
+            border-color: #409EFF;
+        }
+
+        .el-button--primary:hover {
+            background-color: #66b1ff;
+            border-color: #66b1ff;
+            transform: translateY(-3px);
+        }
+
+        .el-button--success {
+            background-color: #67C23A;
+            border-color: #67C23A;
+        }
+
+        .el-button--success:hover {
+            background-color: #85D6A3;
+            border-color: #85D6A3;
+            transform: translateY(-3px);
+        }
+
+        .background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url('https://cdn.pixabay.com/photo/2015/09/18/19/03/ancient-china-942374_960_720.jpg');
+            background-size: cover;
+            background-position: center;
+            opacity: 0.1;
+            z-index: -1;
+        }
+
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .poetry-quantity-svg {
+            background-color: #f7f7f7;
+            margin: 0 auto;
+            width: 900px;
+            height: 500px;
+            border-radius: 15px;
+        }
+
+        .author-count-svg {
+            width: 100%;
+            height: 500px;
+            margin-top: 20px;
+            border-radius: 15px;
+        }
+
+        .chart-text {
+            font-size: 12px;
+            font-weight: bold;
+            fill: #333;
+        }
+
+        .axis-label {
+            font-size: 14px;
+            font-weight: bold;
+            fill: #555;
+        }
+    </style>
+</head>
+<body>
+
+
+<svg class="author-count-svg"></svg>
+
+
+<script>
+    var top_poets = {{ top_poets|safe }};
+
+    // 定义图表的宽高和最大值
+    var width = 900;
+    var height = 500;
+    var padding = 50;
+
+    var svg = d3.select('.author-count-svg')
+        .attr('width', width)
+        .attr('height', height);
+
+    // 设置比例尺
+    var xScale = d3.scaleBand()
+        .domain(top_poets.map(function (d) {
+            return d.name;
+        }))
+        .range([padding, width - padding])
+        .padding(0.1);
+
+    var yScale = d3.scaleLinear()
+        .domain([0, d3.max(top_poets, function (d) {
+            return d.quantity;
+        })])
+        .range([height - padding, padding]);
+    // 添加y轴的标题
+    svg.append('text')
+        .attr('x', -height / 2)  // 将文本放置在y轴的左侧
+        .attr('y', padding / 2)   // 可以根据需要调整垂直位置
+        .attr('transform', 'rotate(-90)')  // 旋转文本使其垂直显示
+        .attr('text-anchor', 'middle')
+        .style('font-size', '14px')
+        .text('诗人诗词数量');  // y轴标题文本
+
+    // 绘制柱状图
+    svg.selectAll('.bar')
+        .data(top_poets)
+        .enter().append('rect')
+        .attr('class', 'bar')
+        .attr('x', function (d) {
+            return xScale(d.name);
+        })
+        .attr('y', height - padding)  // 初始位置为y轴底部
+        .attr('width', xScale.bandwidth())
+        .attr('height', 0)  // 初始高度为0
+        .attr('fill', '#409EFF')
+        .transition()
+        .duration(1000)  // 动画持续时间为1秒
+        .attr('y', function (d) {
+            return yScale(d.quantity);
+        })  // 动画最终y位置为数量对应的高度
+        .attr('height', function (d) {
+            return height - padding - yScale(d.quantity);
+        });
+
+    // 在柱子上添加数量文本
+    svg.selectAll('.text')
+        .data(top_poets)
+        .enter().append('text')
+        .attr('class', 'chart-text')
+        .attr('x', function (d) {
+            return xScale(d.name) + xScale.bandwidth() / 2;
+        })
+        .attr('y', function (d) {
+            return yScale(d.quantity) - 10;
+        })
+        .attr('text-anchor', 'middle')
+        .text(function (d) {
+            return d.quantity;
+        })
+        .style('opacity', 0)
+        .transition()
+        .duration(1000)
+        .style('opacity', 1)
+
+    // 添加x轴
+    svg.append('g')
+        .attr('transform', 'translate(0,' + (height - padding) + ')')
+        .call(d3.axisBottom(xScale))
+        .selectAll('.tick text')
+        .style('font-size', '12px');
+
+    // 添加y轴
+    svg.append('g')
+        .attr('transform', 'translate(' + padding + ',0)')
+        .call(d3.axisLeft(yScale).ticks(5))
+        .selectAll('.tick text')
+        .style('font-size', '12px');
+
+</script>
+</body>
+</html>

@@ -1,92 +1,198 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <title>地点</title>
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>金陵文脉 - 地点分布</title>
     <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/element-ui@2.15.7/lib/theme-chalk/index.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/element-ui@2.15.7/lib/index.js"></script>
     <style>
-      #map {
-        width: 100%;
-        height: 800px;
-        cursor: grab;
-      }
-      #map:active {
-        cursor: grabbing;
-      }
-      .tooltip {
-        position: absolute;
-        background: rgba(0, 0, 0, 0.7);
-        color: white;
-        padding: 8px;
-        border-radius: 4px;
-        pointer-events: none;
-        opacity: 0;
-        transition: opacity 0.2s;
-      }
-      .marker {
-        fill: red;
-        stroke: black;
-        stroke-width: 0.1px;
-        cursor: pointer;
-      }
-    </style>
-  </head>
-  <body>
-    <h1>金陵</h1>
-    <svg id="map" width="1000" height="800"></svg>
-    <div id="tooltip" class="tooltip"></div>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7fb;
+            margin: 0;
+            padding: 0;
+        }
 
-    <script>
-      const width = 1000;
-      const height = 800;
-      const svg = d3
+        h1 {
+            text-align: center;
+            font-size: 3rem;
+            color: #2c3e50;
+            margin-top: 30px;
+            margin-bottom: 20px;
+        }
+
+        #map {
+            width: 100%;
+            height: 70vh;
+            cursor: grab;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease-in-out;
+        }
+
+        #map:active {
+            cursor: grabbing;
+        }
+
+        .tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px;
+            border-radius: 6px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            max-width: 250px;
+        }
+
+        .marker {
+            fill: #e74c3c;
+            stroke: #000000;
+            stroke-width: 0.1px;
+            cursor: pointer;
+        }
+
+        .zoom-controls {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .zoom-btn {
+            background-color: #409eff;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 5px;
+            cursor: pointer;
+        }
+
+        .zoom-btn:hover {
+            background-color: #66b1ff;
+        }
+
+        .container {
+            text-align: center;
+            margin: 20px auto;
+            max-width: 1200px;
+        }
+
+        .content {
+            margin-top: 20px;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: #333;
+            text-align: justify;
+            padding: 0 20px;
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+    <h1>金陵文脉 - 地点分布</h1>
+    <div class="zoom-controls">
+        <button class="zoom-btn" id="zoom-in">放大</button>
+        <button class="zoom-btn" id="zoom-out">缩小</button>
+    </div>
+    <svg id="map"></svg>
+    <div id="tooltip" class="tooltip"></div>
+    <div class="content">
+        南京，作为中国四大古都之一，历史悠久、文化灿烂，素有“六朝古都”的美誉。自六朝时期起，南京便成为了中国历史上的政治、文化和经济中心之一，留下了众多历史遗迹和文化珍宝。作为历史文化名城，南京不仅是众多朝代的都城，更是无数文人墨客的故乡，文人风采和帝王气象交织在这片热土上，形成了独特的金陵文化。
+        南京的历史可以追溯到公元前472年，当时它是吴国的国都，之后成为东吴、东晋、南朝、明朝等多个朝代的都城。自古有“六朝金粉地，金陵帝王州”的说法，南京是六朝古都之一，帝王将相、士人墨客、风云人物云集于此，历经千年风雨，积淀了深厚的历史文化。
+        在秦淮河的两岸，曾经是许多文人雅士的栖息地，夜晚的船只灯火阑珊，诗词歌赋、风花雪月，构成了一幅动人心魄的历史画卷。无论是王谢堂前的燕子，还是徐孝嗣、谢灵运等文人的流传诗文，都无不彰显出南京的文化气质与艺术魅力。
+        南京的地理环境，造就了丰富的自然景观与人文资源。钟山（紫金山）是南京的象征之一，山上有明孝陵、紫金山天文台等历史遗迹，山脉纵深、森林覆盖，是南京自然风光的重要组成部分。钟山不仅是帝王的墓地，也承载了丰厚的文化底蕴，涌现了无数的历史人物和文化遗址。
+        此外，南京的玄武湖、雨花台、白下区等区域，也是历史与文化的见证地。玄武湖周围的古老建筑和园林，见证了南京历史的变迁；雨花台则是南京近现代历史的象征，曾见证了无数革命先烈的英勇牺牲。
+        南京是众多历史人物的故乡和活动场所。从三国时期的刘备、孙权到明朝的朱元璋，再到近现代的革命先驱孙中山等，南京不仅是帝王的统治中心，也是英雄豪杰的摇篮。李白、杜牧、吴敬梓、林语堂等文学大家更是在南京留下了脍炙人口的诗文，南京的文人传统深入人心。
+        南京不仅是中国古代文化的重要发源地之一，也是中西文化交流的桥梁。作为明清时期的都城，南京曾是中国传统文化的中心；而近代以来，南京成为了中西文化交汇的地方。外来文化与本土传统相互融合，形成了南京独特的文化风貌。
+        南京，这座千年古城，不仅仅是历史的见证者，更是未来文化与历史交汇的熔炉。今天的南京，依然保持着浓厚的历史文化氛围，吸引着来自世界各地的游客与学者。在这片古老的土地上，每一座山川、每一条河流、每一块砖石，都在默默诉说着这座城市的传奇与辉煌。
+    </div>
+</div>
+
+<script>
+    const width = 1000;
+    const height = 800;
+    const svg = d3
         .select("#map")
         .attr("width", width)
         .attr("height", height)
         .attr("viewBox", [0, 0, width, height]);
-      const g = svg.append("g");
-      const projection = d3.geoMercator()
+
+    const g = svg.append("g");
+    const projection = d3
+        .geoMercator()
         .scale(35000)
         .center([118.7969, 32.0603])
         .translate([width / 2, height / 2]);
-      const path = d3.geoPath().projection(projection);
-      const zoom = d3.zoom()
-        .scaleExtent([0.5, 20])
-        .on("zoom", (event) => {
-          g.attr("transform", event.transform);
-          const scale = event.transform.k;
-          g.selectAll(".marker")
-            .attr("r", 7 / scale);
-        });
-      svg.call(zoom);
-      d3.json("https://geo.datav.aliyun.com/areas_v3/bound/320100_full.json").then((data) => {
-        g.selectAll("path")
-          .data(data.features)
-          .join("path")
-          .attr("d", path)
-          .attr("fill", "none")
-          .attr("stroke", "blue");
-        const locations = {{locations|safe}};
-        const tooltip = d3.select("#tooltip");
-        g.selectAll(".marker")
-          .data(locations)
-          .enter()
-          .append("circle")
-          .attr("class", "marker")
-          .attr("cx", d => projection([d.经度, d.纬度])[0])
-          .attr("cy", d => projection([d.经度, d.纬度])[1])
-          .attr("r", 6) // 默认半径为6
-          .on("mouseover", (event, d) => {
-            tooltip.transition().duration(200).style("opacity", .9);
-            tooltip.html("地名: " + d.地名 + "<br>" + "经度: " + d.经度 + "<br>" + "纬度: " + d.纬度)
-              .style("left", (event.pageX + 5) + "px")
-              .style("top", (event.pageY - 28) + "px");
-          })
-          .on("mouseout", () => {
-            tooltip.transition().duration(200).style("opacity", 0);
-          });
-      });
-    </script>
-  </body>
+
+    const path = d3.geoPath().projection(projection);
+    const zoom = d3.zoom().scaleExtent([0.5, 20]).on("zoom", (event) => {
+        g.attr("transform", event.transform);
+        const scale = event.transform.k;
+        g.selectAll(".marker").attr("r", 6 / scale);
+    });
+
+    svg.call(zoom);
+    document.getElementById("zoom-in").addEventListener("click", () => {
+        svg.transition().duration(750).call(zoom.scaleBy, 1.2);
+    });
+
+    document.getElementById("zoom-out").addEventListener("click", () => {
+        svg.transition().duration(750).call(zoom.scaleBy, 0.8);
+    });
+    d3.json("https://geo.datav.aliyun.com/areas_v3/bound/320100_full.json").then(
+        (data) => {
+            g.selectAll("path")
+                .data(data.features)
+                .join("path")
+                .attr("d", path)
+                .attr("fill", "none")
+                .attr("stroke", "#2c3e50")
+                .attr("stroke-width", 1);
+            
+            const locations = {{ locations|safe }}
+
+            const tooltip = d3.select("#tooltip");
+
+            g.selectAll(".marker")
+                .data(locations)
+                .enter()
+                .append("circle")
+                .attr("class", "marker")
+                .attr("cx", (d) => projection([d.经度, d.纬度])[0])
+                .attr("cy", (d) => projection([d.经度, d.纬度])[1])
+                .attr("r", 6)
+                .on("mouseover", (event, d) => {
+                    tooltip
+                        .transition()
+                        .duration(200)
+                        .style("opacity", 1);
+                    tooltip
+                        .html(
+                            "地名: " + d.地名 + "<br>" + "经度: " + d.经度 + "<br>" + "纬度: " + d.纬度
+                        )
+                        .style("left", event.pageX + 10 + "px")
+                        .style("top", event.pageY - 28 + "px");
+                })
+                .on("mouseout", () => {
+                    tooltip.transition().duration(200).style("opacity", 0);
+                });
+        }
+    );
+</script>
+</body>
 </html>

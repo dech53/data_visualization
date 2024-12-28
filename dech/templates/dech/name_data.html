@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>诗歌词云</title>
-    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
     <script src="https://cdn.jsdelivr.net/npm/d3-cloud/build/d3.layout.cloud.js"></script>
 
     <!-- 引入 Google Fonts -->
@@ -63,11 +63,7 @@
             font-family: 'Raleway', sans-serif;
             font-weight: 700;
             cursor: pointer;
-            transition: color 0.3s ease;
-        }
-
-        .wordcloud text:hover {
-            color: #ff7f50;
+            transition: 0.3s ease;
         }
 
         /* 箭头样式 */
@@ -92,26 +88,21 @@
 <body>
 <h1 class="dynasty-title">六朝</h1>
 <div class="wordcloud-container" id="wordcloud-container">
-    <!-- 左右切换箭头 -->
     <span class="arrow left-arrow" onclick="changeWordCloud(-1)">&#8592;</span>
     <div id="wordcloud" class="wordcloud"></div>
     <span class="arrow right-arrow" onclick="changeWordCloud(1)">&#8594;</span>
 </div>
-
 <script>
     const wordFreq = JSON.parse('{{ word_freq|safe }}');
     let currentDynastyIndex = 0;
     const dynasties = Object.keys(wordFreq);
 
-    // 标准化词频数据，使得每个朝代的词频相对平衡
     function normalizeWordFreq(data) {
         const values = Object.values(data);
         const minFreq = Math.min(...values);
         const maxFreq = Math.max(...values);
         const range = maxFreq - minFreq;
-        // 如果最大频率和最小频率相同，返回原数据
         if (range === 0) return data;
-        // 标准化，使得词频在 [0, 1] 范围内
         const normalized = {};
         for (const [word, freq] of Object.entries(data)) {
             normalized[word] = (freq - minFreq) / range;
@@ -142,7 +133,7 @@
                 size: getFontSize(normalizedFreq, maxFreq, minFreq)
             })))
             .padding(5)
-            .rotate(() => Math.random() * 75 - 45)  // 随机旋转角度
+            .rotate(() => Math.random() * 75 - 45)
             .fontSize(d => d.size)
             .on("end", words => {
                 svgContainer
@@ -156,7 +147,26 @@
                     .style("fill", () => d3.scaleOrdinal(d3.schemeCategory10)(Math.floor(Math.random() * 10)))
                     .attr("text-anchor", "middle")
                     .attr("transform", d => `translate(${d.x},${d.y}) rotate(${d.rotate})`)
-                    .text(d => d.text);
+                    .text(d => d.text)
+                    // 添加鼠标事件
+                    .on("mouseover", function () {
+                        d3.select(this)
+                            .style("fill", "#ff7f50")
+                            .transition()
+                            .duration(300)
+                            .style("font-size", function (d) {
+                                return `${d.size * 1.5}px`;
+                            });
+                    })
+                    .on("mouseout", function () {
+                        d3.select(this)
+                            .style("fill", () => d3.scaleOrdinal(d3.schemeCategory10)(Math.floor(Math.random() * 10)))  // 恢复颜色
+                            .transition()
+                            .duration(300)
+                            .style("font-size", function (d) {
+                                return `${d.size}px`;
+                            });
+                    });
             });
 
         layout.start();
@@ -176,6 +186,8 @@
         const firstData = wordFreq[firstDynasty];
         drawWordCloud(firstDynasty, firstData);
     }
+    
+
 </script>
 
 </body>

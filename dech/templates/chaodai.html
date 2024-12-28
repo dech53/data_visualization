@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>金陵文脉</title>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f7f7f7;
+            margin: 0;
+            padding: 0;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: #333;
+        }
+
+        #app {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 3rem;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            opacity: 0;
+            animation: fadeIn 1s forwards 0.5s;
+        }
+
+        .el-button {
+            margin: 10px;
+            font-size: 1.2rem;
+            padding: 15px 30px;
+            border-radius: 8px;
+            opacity: 0;
+            animation: fadeIn 1s forwards 1s;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+
+        .el-button--primary {
+            background-color: #409EFF;
+            border-color: #409EFF;
+        }
+
+        .el-button--primary:hover {
+            background-color: #66b1ff;
+            border-color: #66b1ff;
+            transform: translateY(-3px);
+        }
+
+        .el-button--success {
+            background-color: #67C23A;
+            border-color: #67C23A;
+        }
+
+        .el-button--success:hover {
+            background-color: #85D6A3;
+            border-color: #85D6A3;
+            transform: translateY(-3px);
+        }
+
+        .background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url('https://cdn.pixabay.com/photo/2015/09/18/19/03/ancient-china-942374_960_720.jpg');
+            background-size: cover;
+            background-position: center;
+            opacity: 0.1;
+            z-index: -1;
+        }
+
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .poetry-quantity-svg {
+            background-color: #f7f7f7;
+            margin: 0 auto;
+            width: 900px;
+            height: 500px;
+            border-radius: 15px;
+        }
+
+        .author-count-svg {
+            width: 100%;
+            height: 500px;
+            margin-top: 20px;
+            border-radius: 15px;
+        }
+
+        .chart-text {
+            font-size: 12px;
+            font-weight: bold;
+            fill: #333;
+        }
+
+        .axis-label {
+            font-size: 14px;
+            font-weight: bold;
+            fill: #555;
+        }
+    </style>
+</head>
+<body>
+
+
+<svg class="poetry-quantity-svg"></svg>
+
+
+<script>
+    var chaodaishige = {{ dynasties|safe }};
+    var total = chaodaishige.reduce(function (sum, d) {
+        return sum + d.quantity;
+    }, 0);
+
+    var svg = d3.select('.poetry-quantity-svg');
+    var pie = d3.pie()
+        .value(function (d) {
+            return d.quantity;
+        });
+    var arc = d3.arc()
+        .innerRadius(0)
+        .outerRadius(200); // 固定外半径为200
+
+    var arcs = svg.selectAll('.arc')
+        .data(pie(chaodaishige))
+        .enter().append('g')
+        .attr('class', 'arc')
+        .attr('transform', 'translate(' + 900 / 2 + ',' + 500 / 2 + ')');
+
+    var color = d3.scaleOrdinal(d3.schemeSet3);
+
+    // 去掉阴影，使用纯色填充
+    arcs.append('path')
+        .attr('d', arc)
+        .attr('fill', function (d, i) {
+            return color(i);
+        })
+        .transition()
+        .duration(1000)
+        .attrTween("d", function (d) {
+            var interpolate = d3.interpolate({startAngle: 0, endAngle: 0}, d);
+            return function (t) {
+                return arc(interpolate(t));
+            };
+        });
+
+    // 添加图表中心的文本
+    svg.append('text')
+        .attr('x', 900 / 2)
+        .attr('y', 500 / 2)
+        .attr('text-anchor', 'middle')
+        .attr('dy', -50)
+        .style('font-size', '20px')
+        .style('font-weight', 'bold')
+        .style('fill', '#333')
+        .text('朝代分布');
+
+    // 添加饼图的文本
+    arcs.append('text')
+        .attr('transform', function (d) {
+            var centroid = arc.centroid(d);
+            return 'translate(' + centroid[0] * 2.2 + ',' + centroid[1] * 2.2 + ')';
+        })
+        .style('text-anchor', 'middle')
+        .style('font-size', '14px')
+        .style('fill', '#333')  // 改为黑色文字
+        .style('font-weight', 'bold')
+        .style('opacity', 0)
+        .transition()
+        .duration(1000)
+        .style('opacity', 1)
+        .each(function (d) {
+            var percentage = ((d.data.quantity / total) * 100).toFixed(2) + "%";
+            var nameText = d.data.name;
+
+            // 添加两个文本行
+            d3.select(this)
+                .append('tspan')
+                .text(nameText)
+                .attr('x', 0)
+                .attr('dy', 0);  // 第一行，name文字
+
+            d3.select(this)
+                .append('tspan')
+                .text(percentage)
+                .attr('x', 0)
+                .attr('dy', '1.2em');  // 第二行，percentage文字，距离第一行一定的间距
+        });
+</script>
+</body>
+</html>

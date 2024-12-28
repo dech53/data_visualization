@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>金陵文脉</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-ui@2.15.7/lib/theme-chalk/index.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/element-ui@2.15.7/lib/index.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f7f7f7;
+            margin: 0;
+            padding: 0;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: #333;
+        }
+
+        #app {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 3rem;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            opacity: 0;
+            animation: fadeIn 1s forwards 0.5s;
+        }
+
+        .el-button {
+            margin: 10px;
+            font-size: 1.2rem;
+            padding: 15px 30px;
+            border-radius: 8px;
+            opacity: 0;
+            animation: fadeIn 1s forwards 1s;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+
+        .el-button--primary {
+            background-color: #409EFF;
+            border-color: #409EFF;
+        }
+
+        .el-button--primary:hover {
+            background-color: #66b1ff;
+            border-color: #66b1ff;
+            transform: translateY(-3px);
+        }
+
+        .el-button--success {
+            background-color: #67C23A;
+            border-color: #67C23A;
+        }
+
+        .el-button--success:hover {
+            background-color: #85D6A3;
+            border-color: #85D6A3;
+            transform: translateY(-3px);
+        }
+
+        .background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url('https://cdn.pixabay.com/photo/2015/09/18/19/03/ancient-china-942374_960_720.jpg');
+            background-size: cover;
+            background-position: center;
+            opacity: 0.1;
+            z-index: -1;
+        }
+
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .poetry-quantity-svg {
+            background-color: #f7f7f7;
+            margin: 0 auto;
+            width: 900px;
+            height: 500px;
+            border-radius: 15px;
+        }
+
+        .author-count-svg {
+            width: 100%;
+            height: 500px;
+            margin-top: 20px;
+            border-radius: 15px;
+        }
+
+        .chart-text {
+            font-size: 12px;
+            font-weight: bold;
+            fill: #333;
+        }
+
+        .axis-label {
+            font-size: 14px;
+            font-weight: bold;
+            fill: #555;
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="background"></div>
+    <div class="container">
+        <h1>金陵文脉</h1>
+        <el-button type="primary" @click="goToMap" size="large">查看地点分布</el-button>
+        <el-button type="success" @click="goToData" size="large">查看词云分析</el-button>
+        <el-button type="success" @click="goToshiren" size="large">诗人排名</el-button>
+        <el-button type="success" @click="goTopie" size="large">朝代分布</el-button>
+    </div>
+</div>
+
+<script>
+    new Vue({
+        el: '#app',
+        methods: {
+            goToMap() {
+                window.location.href = '/map/';
+            },
+            goToData() {
+                window.location.href = '/data/';
+            },
+            goToshiren() {
+                window.location.href = '/barChart/';
+            },
+            goTopie() {
+                window.location.href = '/chaodai/';
+            }
+        }
+    });
+</script>
+</body>
+</html>
